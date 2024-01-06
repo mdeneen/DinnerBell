@@ -4,8 +4,9 @@
 name: Maven Package
 
 on:
-  release:
-    types: [created]
+  push:
+    tags:
+    - 'v*'
 
 jobs:
   build:
@@ -24,16 +25,24 @@ jobs:
         distribution: 'temurin'
         server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
         settings-path: ${{ github.workspace }} # location for the settings.xml file
-    - name: Branch name
-      id: branch_name
-      run: |
-          echo ::set-output name=SOURCE_NAME::${GITHUB_REF#refs/*/}
-          echo ::set-output name=SOURCE_BRANCH::${GITHUB_REF#refs/heads/}
-          echo ::set-output name=SOURCE_TAG::${GITHUB_REF#refs/tags/}        
     - name: Build with Maven
       run: mvn -B package --file pom.xml
-    - name: Create artifact
-      uses: actions/upload-artifact@v3
+    - name: Create release
+      id: create_release
+      uses: actions/create-release@v3
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
       with:
-        name: result-artifact
-        path: target/DinnerBell-${{ steps.branch_name.outputs.SOURCE_TAG }}.jar
+        tagname: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+    - name: Upload release
+      uses: actions/upload-release-asset@v3
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_name: DinnerBell-${{github.ref_name}}.jar
+        asset_path: target/DinnerBell-${{github.ref_name}}.jar
+        asset_content_type: application/java-archive
