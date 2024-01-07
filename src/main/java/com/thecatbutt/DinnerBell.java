@@ -22,10 +22,10 @@ public class DinnerBell extends JavaPlugin implements Listener {
 			@Override
 			public void run() {
 				int now = LocalTime.now().getHour();
-				int normalizedHour = hour;
 				if (now != hour) { // hour has changed
 					getServer().getLogger().log(Level.INFO, "Hour has changed");
 					hour = now;
+					int normalizedHour = hour;
 					// only do it if there are players active
 					if (Bukkit.getOnlinePlayers().size() > 0) {
 						String ampm = " AM";
